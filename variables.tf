@@ -1,29 +1,34 @@
-variable "oidc_provider_arn" {
-  description = "ARN of the OIDC identity provider (TFC, GitHub, etc.)"
+variable "provider_url" {
+  description = "OIDC provider URL (e.g. https://app.terraform.io)"
   type        = string
 }
 
-variable "role_name" {
-  description = "IAM role name"
-  type        = string
+variable "client_id_list" {
+  description = "List of client IDs (audiences) for the OIDC provider"
+  type        = list(string)
 }
 
-variable "oidc_conditions" {
-  description = "Trust policy conditions for the OIDC provider"
-  type = list(object({
-    test     = string
-    variable = string
-    values   = list(string)
+variable "thumbprint_list" {
+  description = "List of server certificate thumbprints for the OIDC provider"
+  type        = list(string)
+}
+
+variable "roles" {
+  description = "Map of IAM roles to create with OIDC trust policies"
+  type = map(object({
+    role_name = string
+    oidc_conditions = list(object({
+      test     = string
+      variable = string
+      values   = list(string)
+    }))
+    policy_json = string
   }))
-}
-
-variable "policy_json" {
-  description = "IAM policy document JSON to attach to the role"
-  type        = string
+  default = {}
 }
 
 variable "tags" {
-  description = "Tags to apply to the role"
+  description = "Tags to apply to all resources"
   type        = map(string)
   default     = {}
 }
