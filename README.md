@@ -2,7 +2,13 @@
 
 Terraform module for the full OIDC lifecycle on AWS — creates an identity provider and any number of IAM roles with scoped trust policies and permissions.
 
-One module call per OIDC provider. All roles defined as a map.
+- One module call provisions both the identity provider and all its IAM roles — no orphaned providers
+- Works with Terraform Cloud, GitHub Actions, or any OIDC-compliant CI system
+- Inline policies per role — no shared managed policies, no 10-policy-per-role limit
+- Flexible condition syntax — any `StringEquals`, `StringLike`, `ForAnyValue` combination
+- Eliminates static IAM credentials entirely — no access keys to rotate or leak
+
+**Registry**: `pomo-studio/oidc/aws`
 
 ## Usage
 
@@ -90,7 +96,7 @@ module "github_oidc" {
 | `role_arns` | `map(string)` | Map of role keys to IAM role ARNs |
 | `role_names` | `map(string)` | Map of role keys to IAM role names |
 
-## Resources created
+## What it creates
 
 Per module call:
 - 1 `aws_iam_openid_connect_provider`
@@ -130,6 +136,13 @@ moved {
 ```
 
 Remove `moved` blocks after the first successful apply.
+
+## Requirements
+
+| Tool | Version |
+|------|---------|
+| Terraform | `>= 1.5.0` |
+| AWS provider | `~> 5.0` |
 
 ## License
 
