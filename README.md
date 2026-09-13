@@ -5,13 +5,13 @@
 
 - [Changelog](CHANGELOG.md)
 
-Terraform module for the full OIDC lifecycle on AWS — creates an identity provider and any number of IAM roles with scoped trust policies and permissions.
+Terraform module for the full OIDC lifecycle on AWS: creates an identity provider and any number of IAM roles with scoped trust policies and permissions.
 
-- One module call provisions both the identity provider and all its IAM roles — no orphaned providers
+- One module call provisions both the identity provider and all its IAM roles: no orphaned providers
 - Works with Terraform Cloud, GitHub Actions, or any OIDC-compliant CI system
-- Inline policies per role — no shared managed policies, no 10-policy-per-role limit
-- Flexible condition syntax — any `StringEquals`, `StringLike`, `ForAnyValue` combination
-- Eliminates static IAM credentials entirely — no access keys to rotate or leak
+- Inline policies per role: no shared managed policies, no 10-policy-per-role limit
+- Flexible condition syntax: any `StringEquals`, `StringLike`, `ForAnyValue` combination
+- Eliminates static IAM credentials entirely: no access keys to rotate or leak
 
 **Registry**: `pomo-studio/oidc/aws`
 
@@ -75,6 +75,58 @@ module "github_oidc" {
 }
 ```
 
+## What it creates
+
+Per module call:
+
+- 1 `aws_iam_openid_connect_provider`
+- N `aws_iam_role` (one per key in `roles`)
+- N `aws_iam_role_policy` (inline permissions per role)
+
+## Design decisions
+
+**One provider per module call**: OIDC providers and their roles are a logical unit. Grouping them avoids orphaned providers and makes the trust chain explicit.
+
+**Inline policies over managed policies**: each role gets a dedicated inline policy. This keeps permissions self-contained and avoids the 10-managed-policy limit per role.
+
+**Flexible conditions**: the `oidc_conditions` list supports any combination of `StringEquals`, `StringLike`, `ForAnyValue`, etc. No assumptions about provider-specific claim formats.
+
+## Migrating from v1.0.0
+
+v1.0.0 created individual roles (one module call per role, provider managed externally). v2.0.0 manages the provider and uses `for_each` on roles.
+
+Use `moved` blocks to migrate without destroying resources:
+
+```hcl
+# Provider: from inline resource to module
+moved {
+  from = aws_iam_openid_connect_provider.tfc
+  to   = module.tfc_oidc.aws_iam_openid_connect_provider.this
+}
+
+# Roles: from per-key module to single module with for_each
+moved {
+  from = module.tfc_role["staging"].aws_iam_role.this
+  to   = module.tfc_oidc.aws_iam_role.this["staging"]
+}
+moved {
+  from = module.tfc_role["staging"].aws_iam_role_policy.this
+  to   = module.tfc_oidc.aws_iam_role_policy.this["staging"]
+}
+```
+
+Remove `moved` blocks after the first successful apply.
+
+## Examples
+
+- [`examples/basic`](examples/basic/): GitHub Actions OIDC for a single repo
+- [`examples/complete`](examples/complete/): Terraform Cloud + GitHub Actions, multiple roles
+
+## Reference
+
+<details>
+<summary>Reference</summary>
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -121,51 +173,7 @@ No modules.
 | <a name="output_role_names"></a> [role\_names](#output\_role\_names) | Map of role keys to IAM role names |
 <!-- END_TF_DOCS -->
 
-## What it creates
-
-Per module call:
-- 1 `aws_iam_openid_connect_provider`
-- N `aws_iam_role` (one per key in `roles`)
-- N `aws_iam_role_policy` (inline permissions per role)
-
-## Design decisions
-
-**One provider per module call** — OIDC providers and their roles are a logical unit. Grouping them avoids orphaned providers and makes the trust chain explicit.
-
-**Inline policies over managed policies** — each role gets a dedicated inline policy. This keeps permissions self-contained and avoids the 10-managed-policy limit per role.
-
-**Flexible conditions** — the `oidc_conditions` list supports any combination of `StringEquals`, `StringLike`, `ForAnyValue`, etc. No assumptions about provider-specific claim formats.
-
-## Migrating from v1.0.0
-
-v1.0.0 created individual roles (one module call per role, provider managed externally). v2.0.0 manages the provider and uses `for_each` on roles.
-
-Use `moved` blocks to migrate without destroying resources:
-
-```hcl
-# Provider — from inline resource to module
-moved {
-  from = aws_iam_openid_connect_provider.tfc
-  to   = module.tfc_oidc.aws_iam_openid_connect_provider.this
-}
-
-# Roles — from per-key module to single module with for_each
-moved {
-  from = module.tfc_role["staging"].aws_iam_role.this
-  to   = module.tfc_oidc.aws_iam_role.this["staging"]
-}
-moved {
-  from = module.tfc_role["staging"].aws_iam_role_policy.this
-  to   = module.tfc_oidc.aws_iam_role_policy.this["staging"]
-}
-```
-
-Remove `moved` blocks after the first successful apply.
-
-## Examples
-
-- [`examples/basic`](examples/basic/) — GitHub Actions OIDC for a single repo
-- [`examples/complete`](examples/complete/) — Terraform Cloud + GitHub Actions, multiple roles
+</details>
 
 ## License
 
