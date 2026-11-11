@@ -16,7 +16,7 @@ output "github_actions_role_arns" {
 
 output "gitlab_ci_role_arn" {
   description = "ARN of GitLab CI IAM role"
-  value = module.gitlab_ci_oidc.role_arns["ci_deploy"]
+  value       = module.gitlab_ci_oidc.role_arns["ci_deploy"]
 }
 
 output "oidc_provider_arns" {
