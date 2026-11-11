@@ -28,9 +28,9 @@ module "terraform_cloud_oidc" {
   roles = {
     # Production workspace role
     production = {
-      role_name = "terraform-cloud-production"
-      role_description = "IAM role for Terraform Cloud production workspace"
-      max_session_duration = 3600  # 1 hour
+      role_name            = "terraform-cloud-production"
+      role_description     = "IAM role for Terraform Cloud production workspace"
+      max_session_duration = 3600 # 1 hour
       oidc_conditions = [
         {
           test     = "StringEquals"
@@ -48,8 +48,8 @@ module "terraform_cloud_oidc" {
 
     # Staging workspace role
     staging = {
-      role_name = "terraform-cloud-staging"
-      role_description = "IAM role for Terraform Cloud staging workspace"
+      role_name            = "terraform-cloud-staging"
+      role_description     = "IAM role for Terraform Cloud staging workspace"
       max_session_duration = 3600
       oidc_conditions = [
         {
@@ -83,9 +83,9 @@ module "github_actions_oidc" {
   roles = {
     # Frontend deployment role
     frontend_deploy = {
-      role_name = "github-actions-frontend-deploy"
-      role_description = "IAM role for GitHub Actions frontend deployment"
-      max_session_duration = 900  # 15 minutes
+      role_name            = "github-actions-frontend-deploy"
+      role_description     = "IAM role for GitHub Actions frontend deployment"
+      max_session_duration = 900 # 15 minutes
       oidc_conditions = [
         {
           test     = "StringEquals"
@@ -108,8 +108,8 @@ module "github_actions_oidc" {
 
     # Backend deployment role
     backend_deploy = {
-      role_name = "github-actions-backend-deploy"
-      role_description = "IAM role for GitHub Actions backend deployment"
+      role_name            = "github-actions-backend-deploy"
+      role_description     = "IAM role for GitHub Actions backend deployment"
       max_session_duration = 900
       oidc_conditions = [
         {
@@ -148,8 +148,8 @@ module "gitlab_ci_oidc" {
   roles = {
     # GitLab CI deployment role
     ci_deploy = {
-      role_name = "gitlab-ci-deploy"
-      role_description = "IAM role for GitLab CI/CD deployments"
+      role_name            = "gitlab-ci-deploy"
+      role_description     = "IAM role for GitLab CI/CD deployments"
       max_session_duration = 900
       oidc_conditions = [
         {
@@ -302,7 +302,7 @@ output "github_actions_role_arns" {
 
 output "gitlab_ci_role_arn" {
   description = "ARN of GitLab CI IAM role"
-  value = module.gitlab_ci_oidc.role_arns["ci_deploy"]
+  value       = module.gitlab_ci_oidc.role_arns["ci_deploy"]
 }
 
 output "oidc_provider_arns" {
